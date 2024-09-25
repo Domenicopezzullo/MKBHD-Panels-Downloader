@@ -10,10 +10,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
 type Wallpaper struct {
-	DHD string `json:"dhd"`
-	DSD string `json:"dsd"`
+	DHD string `json:"dhd,omitempty"`
+	DSD string `json:"dsd,omitempty"`
+	S   string `json:"s,omitempty"`
+	WFS string `json:"wfs,omitempty"`
 }
 
 type Response struct {
@@ -25,7 +26,7 @@ func main() {
 	var rootCmd = &cobra.Command{
 		Use:   "<wallpaperid>",
 		Short: "Downloads Wallpaper from MKBHD Overpriced App!",
-		Args:  cobra.ExactArgs(1), 
+		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			wallpaperID := args[0]
 			downloadWallpaper(wallpaperID)
@@ -70,11 +71,19 @@ func downloadWallpaper(wallpaperID string) {
 		return
 	}
 
-
-	saveWallpaper(wallpaperID, wallpaper.DHD, "dhd")
-	saveWallpaper(wallpaperID, wallpaper.DSD, "dsd")
+	if wallpaper.DHD != "" {
+		saveWallpaper(wallpaperID, wallpaper.DHD, "dhd")
+	}
+	if wallpaper.DSD != "" {
+		saveWallpaper(wallpaperID, wallpaper.DSD, "dsd")
+	}
+	if wallpaper.S != "" {
+		saveWallpaper(wallpaperID, wallpaper.S, "s")
+	}
+	if wallpaper.WFS != "" {
+		saveWallpaper(wallpaperID, wallpaper.WFS, "wfs")
+	}
 }
-
 
 func saveWallpaper(wallpaperID, url, quality string) {
 	err := os.MkdirAll("wallpapers", os.ModePerm)
@@ -91,7 +100,6 @@ func saveWallpaper(wallpaperID, url, quality string) {
 	}
 	defer file.Close()
 
-	
 	imageResponse, err := http.Get(url)
 	if err != nil {
 		fmt.Printf("Error fetching image for wallpaper ID %s: %v\n", wallpaperID, err)
