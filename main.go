@@ -10,13 +10,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Wallpaper represents the structure of the wallpaper data
+
 type Wallpaper struct {
 	DHD string `json:"dhd"`
 	DSD string `json:"dsd"`
 }
 
-// Response represents the overall response structure
 type Response struct {
 	Version int                       `json:"version"`
 	Data    map[string]Wallpaper `json:"data"`
@@ -26,7 +25,7 @@ func main() {
 	var rootCmd = &cobra.Command{
 		Use:   "<wallpaperid>",
 		Short: "Downloads Wallpaper from MKBHD Overpriced App!",
-		Args:  cobra.ExactArgs(1), // Ensure exactly one argument is provided
+		Args:  cobra.ExactArgs(1), 
 		Run: func(cmd *cobra.Command, args []string) {
 			wallpaperID := args[0]
 			downloadWallpaper(wallpaperID)
@@ -39,7 +38,7 @@ func main() {
 }
 
 func downloadWallpaper(wallpaperID string) {
-	url := "https://storage.googleapis.com/panels-api/data/20240916/media-1a-i-p~s" // Example URL
+	url := "https://storage.googleapis.com/panels-api/data/20240916/media-1a-i-p~s"
 
 	response, err := http.Get(url)
 	if err != nil {
@@ -71,20 +70,19 @@ func downloadWallpaper(wallpaperID string) {
 		return
 	}
 
-	// Save the wallpaper URLs to disk
+
 	saveWallpaper(wallpaperID, wallpaper.DHD, "dhd")
 	saveWallpaper(wallpaperID, wallpaper.DSD, "dsd")
 }
 
+
 func saveWallpaper(wallpaperID, url, quality string) {
-	// Create the directory if it doesn't exist
 	err := os.MkdirAll("wallpapers", os.ModePerm)
 	if err != nil {
 		fmt.Printf("Error creating directory: %v\n", err)
 		return
 	}
 
-	// Create a file to save the image
 	fileName := fmt.Sprintf("wallpapers/%s_%s.jpg", wallpaperID, quality)
 	file, err := os.Create(fileName)
 	if err != nil {
@@ -93,7 +91,7 @@ func saveWallpaper(wallpaperID, url, quality string) {
 	}
 	defer file.Close()
 
-	// Fetch the image and write to the file
+	
 	imageResponse, err := http.Get(url)
 	if err != nil {
 		fmt.Printf("Error fetching image for wallpaper ID %s: %v\n", wallpaperID, err)
