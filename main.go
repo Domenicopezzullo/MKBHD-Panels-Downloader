@@ -6,30 +6,28 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
 
 type Wallpaper struct {
 	DHD string `json:"dhd,omitempty"`
-	DSD string `json:"dsd,omitempty"`
-	S   string `json:"s,omitempty"`
-	WFS string `json:"wfs,omitempty"`
 }
 
 type Response struct {
-	Version int                       `json:"version"`
+	Version int                `json:"version"`
 	Data    map[string]Wallpaper `json:"data"`
 }
 
 func main() {
 	var rootCmd = &cobra.Command{
-		Use:   "<wallpaperid>",
+		Use:   "<wallpapername>",
 		Short: "Downloads Wallpaper from MKBHD Overpriced App!",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			wallpaperID := args[0]
-			downloadWallpaper(wallpaperID)
+			wallpaperName := args[0]
+			downloadWallpaper(wallpaperName)
 		},
 	}
 
@@ -38,7 +36,7 @@ func main() {
 	}
 }
 
-func downloadWallpaper(wallpaperID string) {
+func downloadWallpaper(wallpaperName string) {
 	url := "https://storage.googleapis.com/panels-api/data/20240916/media-1a-i-p~s"
 
 	response, err := http.Get(url)
@@ -65,34 +63,26 @@ func downloadWallpaper(wallpaperID string) {
 		return
 	}
 
-	wallpaper, exists := apiResponse.Data[wallpaperID]
-	if !exists {
-		fmt.Printf("Wallpaper ID %s does not exist.\n", wallpaperID)
-		return
+	wallpaperNameLower := strings.ToLower(wallpaperName)
+
+	for wallpaperID, wallpaper := range apiResponse.Data {
+		if strings.Contains(strings.ToLower(wallpaper.DHD), wallpaperNameLower) {
+			saveWallpaper(wallpaperID, wallpaper.DHD)
+			return
+		}
 	}
 
-	if wallpaper.DHD != "" {
-		saveWallpaper(wallpaperID, wallpaper.DHD, "dhd")
-	}
-	if wallpaper.DSD != "" {
-		saveWallpaper(wallpaperID, wallpaper.DSD, "dsd")
-	}
-	if wallpaper.S != "" {
-		saveWallpaper(wallpaperID, wallpaper.S, "s")
-	}
-	if wallpaper.WFS != "" {
-		saveWallpaper(wallpaperID, wallpaper.WFS, "wfs")
-	}
+	fmt.Printf("No wallpaper found with name %s in the DHD URL.\n", wallpaperName)
 }
 
-func saveWallpaper(wallpaperID, url, quality string) {
+func saveWallpaper(wallpaperID, url string) {
 	err := os.MkdirAll("wallpapers", os.ModePerm)
 	if err != nil {
 		fmt.Printf("Error creating directory: %v\n", err)
 		return
 	}
 
-	fileName := fmt.Sprintf("wallpapers/%s_%s.jpg", wallpaperID, quality)
+	fileName := fmt.Sprintf("wallpapers/%s_dhd.jpg", wallpaperID)
 	file, err := os.Create(fileName)
 	if err != nil {
 		fmt.Printf("Error creating file %s: %v\n", fileName, err)
@@ -112,6 +102,6 @@ func saveWallpaper(wallpaperID, url, quality string) {
 		return
 	}
 
-	fmt.Printf("Saved wallpaper ID %s (%s) to %s\n", wallpaperID, quality, fileName)
+	fmt.Printf("Saved wallpaper ID %s (dhd) to %s\n", wallpaperID, fileName)
 }
 
